@@ -1,4 +1,4 @@
-# Unreleased — sync with 9router v0.5.119
+# v0.4.0 — Sync with 9router v0.5.119 (2026-11-15)
 
 - Merged upstream 9router v0.5.95 → v0.5.119 (205 commits): Claude Fable 5.2 / Haiku 5.5 / Gemini 4 Carbon, Synthetic, Muse/ChatGPT/Gemini web providers, per-key access control, Hermes profiles, `connect`/`show` CLI commands, Argon quota, many translator and executor fixes.
 - Kept BeeRouter branding, dashboard layout, API-key rate limits, pooled Antigravity quota and the en + vi locale set.
