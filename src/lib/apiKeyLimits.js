@@ -1,5 +1,5 @@
 import { getAdapter } from "@/lib/db/driver.js";
-import { getApiKeyBySecret } from "@/lib/db/index.js";
+import { getApiKeyByKey } from "@/lib/db/index.js";
 
 if (!global._apiKeyInflight) global._apiKeyInflight = new Map();
 const inflight = global._apiKeyInflight;
@@ -101,7 +101,7 @@ export async function getWindowUsageByKeys(secrets) {
 
 export async function acquireApiKeySlot(apiKey) {
   if (!apiKey || typeof apiKey !== "string") return null;
-  const rec = await getApiKeyBySecret(apiKey);
+  const rec = await getApiKeyByKey(apiKey);
   if (!rec || !rec.isActive) return null;
 
   const usage = (rec.dailyRequests || rec.weeklyRequests || rec.dailyTokens || rec.weeklyTokens)

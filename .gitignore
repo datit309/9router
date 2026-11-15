@@ -111,3 +111,4 @@ debug.log
 
 # Isolated upstream integration build
 .next-upstream-sync/
+.scratch/

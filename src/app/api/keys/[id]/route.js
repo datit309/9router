@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { deleteApiKey, getApiKeyById, updateApiKey } from "@/lib/localDb";
+import { validateKeyAccessInput } from "@/shared/utils/keyAccess.js";
 
 // GET /api/keys/[id] - Get single key
 export async function GET(request, { params }) {
@@ -21,7 +22,7 @@ export async function PUT(request, { params }) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { isActive, concurrency, dailyRequests, weeklyRequests, dailyTokens, weeklyTokens } = body;
+    const { isActive, access, concurrency, dailyRequests, weeklyRequests, dailyTokens, weeklyTokens } = body;
 
     const existing = await getApiKeyById(id);
     if (!existing) {
@@ -30,6 +31,11 @@ export async function PUT(request, { params }) {
 
     const updateData = {};
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (access !== undefined) {
+      const checked = validateKeyAccessInput(access);
+      if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 });
+      updateData.access = checked.value;
+    }
 
     const limitFields = { concurrency, dailyRequests, weeklyRequests, dailyTokens, weeklyTokens };
     for (const [name, raw] of Object.entries(limitFields)) {

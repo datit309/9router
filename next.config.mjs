@@ -20,22 +20,33 @@ const nextConfig = {
   // letter). That throw happens at module scope, so every consumer of `open` dies on
   // import — including xAI/Grok token refresh, which loads the OAuth service that imports
   // it. Keeping it external preserves the real `import.meta.url` at runtime.
-  serverExternalPackages: ["better-sqlite3", "sql.js", "node:sqlite", "bun:sqlite", "open"],
+  // @aws-sdk/credential-providers must stay external for the same class of reason: it reads
+  // ~/.aws/config and the SSO token cache from disk at runtime and resolves its credential
+  // plugins by dynamic require, neither of which survives bundling.
+  // wreq-js resolves its rust native binding by relative require paths from its own
+  // package dir — bundling breaks those paths ("Failed to load native module").
+  // undici must stay external too: webpack's vendored copy drops the per-request
+  // `dispatcher` connect options (ecdhCurve) — the built server then RSTs on
+  // DPI-shaped networks while the dev server (real undici) passes.
+  serverExternalPackages: ["better-sqlite3", "sql.js", "node:sqlite", "bun:sqlite", "open", "@aws-sdk/credential-providers", "wreq-js", "undici"],
   turbopack: {
     root: tracingRoot
   },
   outputFileTracingRoot: tracingRoot,
+  outputFileTracingIncludes: {
+    // serverExternalPackages keeps undici external; dynamic import("undici")
+    // alone doesn't pull it into the trace, so force-ship the real package.
+    "*": ["./node_modules/undici/**/*"],
+    // DeepSeek web PoW: the worker_threads script and its hash import are loaded
+    // from the filesystem at runtime and are not auto-traced.
+    // copy-standalone-assets.mjs also copies these; tracing is belt-and-braces.
+    "/*": [
+      "./open-sse/lib/deepseek-pow-worker.mjs",
+      "./open-sse/lib/deepseek-pow-hash.js",
+    ],
+  },
   outputFileTracingExcludes: {
     "*": ["./gitbook/**/*"]
-  },
-  // DeepSeek web PoW: dynamic fs.readFile / createRequire siblings are not auto-traced.
-  // copy-standalone-assets.mjs also copies these; tracing is belt-and-braces for NFT.
-  outputFileTracingIncludes: {
-    "/*": [
-      "./open-sse/lib/sha3_wasm_bg.wasm",
-      "./open-sse/lib/deepseek-pow-solver.cjs",
-      "./open-sse/lib/deepseek-pow.js",
-    ],
   },
   images: {
     unoptimized: true

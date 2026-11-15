@@ -1,3 +1,12 @@
+# Unreleased — sync with 9router v0.5.119
+
+- Merged upstream 9router v0.5.95 → v0.5.119 (205 commits): Claude Fable 5.2 / Haiku 5.5 / Gemini 4 Carbon, Synthetic, Muse/ChatGPT/Gemini web providers, per-key access control, Hermes profiles, `connect`/`show` CLI commands, Argon quota, many translator and executor fixes.
+- Kept BeeRouter branding, dashboard layout, API-key rate limits, pooled Antigravity quota and the en + vi locale set.
+- DeepSeek Web now uses upstream's executor (PoW worker, tools); Qwen Web keeps its own prompt flattening.
+- Kimi K3.1 Pro pricing is scoped to OpenCode Go; other providers resolve it at the K3 tier.
+
+---
+
 # v0.3.11 — Antigravity CLI setup fixes (2026-10-07)
 
 - Fixed herdr no longer detecting Antigravity CLI after Apply: the wrapper now execs a binary still named `agy` (`~/.gemini/antigravity-cli/bee-router/agy`), and existing `agy.real` installs migrate automatically on the next Apply.

@@ -358,9 +358,22 @@ export default function ProvidersPage() {
       ? apikeyEntries
       : apikeyEntries.slice(0, APIKEY_INITIAL_VISIBLE);
   const hiddenApikeyCount = apikeyEntries.length - APIKEY_INITIAL_VISIBLE;
+  // Web Cookie: providers authenticated by a pasted browser/session cookie
+  // (connections are stored with authType "cookie" — see POST /api/providers).
   const webCookieEntries = Object.entries(WEB_COOKIE_PROVIDERS)
-    .filter(([, info]) => !info.hidden && matchSearch(info.name))
-    .sort(([, a], [, b]) => (a.priority ?? 999) - (b.priority ?? 999));
+    .filter(
+      ([key, info]) =>
+        !info.hidden &&
+        (info.serviceKinds ?? ["llm"]).includes("llm") &&
+        matchSearch(info.name) &&
+        matchStatus(getProviderStats(key, "cookie"), info.noAuth),
+    )
+    .sort(([ka, a], [kb, b]) => {
+      const ca = getProviderStats(ka, "cookie").total > 0 ? 0 : 1;
+      const cb = getProviderStats(kb, "cookie").total > 0 ? 0 : 1;
+      if (ca !== cb) return ca - cb;
+      return (a.name || "").localeCompare(b.name || "");
+    });
 
   if (loading) {
     return (

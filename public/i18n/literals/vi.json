@@ -1471,7 +1471,7 @@
   "Thinking Budget": "Ngân sách suy nghĩ",
   "Thinking Level": "Mức độ suy nghĩ",
   "Thinking Process": "Quá trình suy nghĩ",
-  "This is the only time you will see this key. Store it securely.": "Đây là lần duy nhất bạn nhìn thấy khóa này. Hãy lưu trữ cẩn thận.",
+  "Store this key securely. You can view or copy it later from the API Keys list.": "Hãy lưu trữ khóa này cẩn thận. Bạn có thể xem hoặc sao chép khóa sau này từ danh sách Khóa API.",
   "This key will stop working immediately but can be resumed later.": "Khóa này sẽ ngừng hoạt động ngay lập tức nhưng có thể kích hoạt lại sau.",
   "This value is write-only after saving.": "Giá trị này chỉ ghi sau khi lưu.",
   "Time": "Thời gian",

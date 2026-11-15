@@ -2,13 +2,13 @@ import { cpSync, existsSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
-// Sibling binaries for open-sse/lib/deepseek-pow.js. Webpack rewrites import.meta.url
-// and does not trace dynamic fs.readFile / createRequire — copy into standalone root so
-// runtime can find them under process.cwd()/open-sse/lib (CLI sets cwd to app/).
+// Runtime-loaded siblings of open-sse/lib/deepseek-pow.js: the worker_threads script
+// and the hash module it imports. Neither bundling nor file tracing follows them —
+// copy into standalone root so the runtime finds them under
+// process.cwd()/open-sse/lib (CLI sets cwd to app/).
 export const DEEPSEEK_POW_ASSETS = [
-  "sha3_wasm_bg.wasm",
-  "deepseek-pow-solver.cjs",
-  "deepseek-pow.js",
+  "deepseek-pow-worker.mjs",
+  "deepseek-pow-hash.js",
 ];
 
 export function copyDeepSeekPowAssets({ projectRoot = process.cwd(), destinationRoot } = {}) {

@@ -17,6 +17,8 @@ describe("OpenAI → Claude context mapping", () => {
     expect(JSON.stringify(out.system), "Claude Code prompt injected").not.toContain("Claude Code");
   });
 
+  // Upstream still marks this a known bug; this fork implements the mapping, so it is a
+  // regression test here.
   it("assistant reasoning_content becomes a thinking block", () => {
     const out = T({
       messages: [

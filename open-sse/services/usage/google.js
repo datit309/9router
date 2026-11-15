@@ -155,7 +155,12 @@ export function readModelQuota(quotas, model) {
   const familyAliases = /^gemini/i.test(model)
     ? ["gemini_session", "gemini_weekly"]
     : ["claude-gpt-5h", "claude-gpt-weekly", "claude_gpt_session", "claude_gpt_weekly"];
-  const pools = [...antigravityPoolIdsForModel(model), ...familyAliases]
+  // Gemini 4 Argon draws from its own buckets when the plan reports them;
+  // plans without a separate Argon summary share the main Gemini pools.
+  const argonPools = /^gemini.*argon/i.test(model)
+    ? ["gemini_argon_session", "gemini_argon_weekly"].map((id) => quotas[id]).filter(Boolean)
+    : [];
+  const pools = argonPools.length > 0 ? argonPools : [...antigravityPoolIdsForModel(model), ...familyAliases]
     .map((id) => quotas[id])
     .filter(Boolean);
   if (pools.length === 0) return null;

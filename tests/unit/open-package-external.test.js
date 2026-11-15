@@ -37,35 +37,32 @@ describe("open must not be bundled into the server build", () => {
   });
 });
 
-// DeepSeek web PoW: same class of bug as `open`. Sibling wasm/cjs are loaded via
-// import.meta.url + createRequire; webpack rewrites that URL and standalone tracing
-// does not ship the binaries. Guard the packaging seams so CLI / next start can solve PoW.
+// DeepSeek web PoW: the solver runs in a worker_threads Worker resolved from
+// process.cwd()/open-sse/lib; bundling and standalone tracing do not follow the worker's
+// own import. Guard the packaging seams so CLI / next start can solve PoW.
 describe("DeepSeek PoW assets must ship in standalone", () => {
-  it("lists wasm and cjs in outputFileTracingIncludes", () => {
+  const assets = [/deepseek-pow-worker\.mjs/, /deepseek-pow-hash\.js/];
+
+  it("lists worker and hash module in outputFileTracingIncludes", () => {
     const config = readFileSync(path.join(repoRoot, "next.config.mjs"), "utf8");
-    expect(config).toMatch(/outputFileTracingIncludes/);
-    expect(config).toMatch(/sha3_wasm_bg\.wasm/);
-    expect(config).toMatch(/deepseek-pow-solver\.cjs/);
+    expect(config.match(/outputFileTracingIncludes/g)).toHaveLength(1);
+    for (const asset of assets) expect(config).toMatch(asset);
   });
 
-  it("copy-standalone-assets places PoW binaries under open-sse/lib", () => {
+  it("copy-standalone-assets places PoW files under open-sse/lib", () => {
     const script = readFileSync(path.join(repoRoot, "scripts", "copy-standalone-assets.mjs"), "utf8");
-    expect(script).toMatch(/sha3_wasm_bg\.wasm/);
-    expect(script).toMatch(/deepseek-pow-solver\.cjs/);
+    for (const asset of assets) expect(script).toMatch(asset);
     expect(script).toMatch(/open-sse/);
   });
 
-  it("CLI pack copies PoW assets when workspace-traced builds skip postbuild", () => {
+  it("CLI pack copies PoW files when workspace-traced builds skip postbuild", () => {
     const script = readFileSync(path.join(repoRoot, "cli", "scripts", "build-cli.js"), "utf8");
-    expect(script).toMatch(/sha3_wasm_bg\.wasm/);
-    expect(script).toMatch(/deepseek-pow-solver\.cjs/);
+    for (const asset of assets) expect(script).toMatch(asset);
   });
 
-  it("solver resolves assets via cwd fallback, not bare top-level createRequire(import.meta.url)", () => {
+  it("worker path resolves from cwd, not a rewritten import.meta.url", () => {
     const source = readFileSync(path.join(repoRoot, "open-sse", "lib", "deepseek-pow.js"), "utf8");
-    // Must not pin createRequire to rewritten import.meta.url at module scope only.
     expect(source).toMatch(/process\.cwd\(\)/);
     expect(source).toMatch(/open-sse/);
-    expect(source).not.toMatch(/^const require = createRequire\(import\.meta\.url\);$/m);
   });
 });

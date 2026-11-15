@@ -64,21 +64,18 @@ describe("standalone build assets", () => {
       .toThrow();
   });
 
-  // DeepSeek web PoW loads wasm/cjs via import.meta.url siblings. Webpack rewrites that
-  // URL to the build-machine path and file tracing does not follow dynamic fs.readFile /
-  // createRequire, so standalone must copy the binaries next to a runtime-findable root.
-  it("copies DeepSeek PoW wasm and cjs into standalone open-sse/lib", () => {
+  // DeepSeek web PoW runs a worker_threads script that imports a sibling hash module
+  // from disk; neither is bundled or traced, so standalone must copy both.
+  it("copies DeepSeek PoW worker and hash module into standalone open-sse/lib", () => {
     const projectRoot = createBuildFixture(".next");
     mkdirSync(join(projectRoot, "open-sse", "lib"), { recursive: true });
-    writeFileSync(join(projectRoot, "open-sse", "lib", "sha3_wasm_bg.wasm"), "wasm-bytes");
-    writeFileSync(join(projectRoot, "open-sse", "lib", "deepseek-pow-solver.cjs"), "module.exports={U:1}");
-    writeFileSync(join(projectRoot, "open-sse", "lib", "deepseek-pow.js"), "export {}");
+    writeFileSync(join(projectRoot, "open-sse", "lib", "deepseek-pow-worker.mjs"), "worker");
+    writeFileSync(join(projectRoot, "open-sse", "lib", "deepseek-pow-hash.js"), "export {}");
 
     copyStandaloneAssets({ projectRoot, distDir: ".next" });
 
     const dest = join(projectRoot, ".next", "standalone", "open-sse", "lib");
-    expect(readFileSync(join(dest, "sha3_wasm_bg.wasm"), "utf8")).toBe("wasm-bytes");
-    expect(readFileSync(join(dest, "deepseek-pow-solver.cjs"), "utf8")).toBe("module.exports={U:1}");
-    expect(readFileSync(join(dest, "deepseek-pow.js"), "utf8")).toBe("export {}");
+    expect(readFileSync(join(dest, "deepseek-pow-worker.mjs"), "utf8")).toBe("worker");
+    expect(readFileSync(join(dest, "deepseek-pow-hash.js"), "utf8")).toBe("export {}");
   });
 });

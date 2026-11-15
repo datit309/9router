@@ -8,9 +8,42 @@
  */
 import { BaseExecutor } from "./base.js";
 import { buildQwenCookieHeader, extractQwenToken } from "../lib/webCookieAuth.js";
-import { parseOpenAIMessages } from "./deepseek-web.js";
 
-export { parseOpenAIMessages };
+// Flatten OpenAI messages into the single prompt string the Qwen web API takes.
+export function parseOpenAIMessages(messages) {
+  const extracted = [];
+  for (const msg of messages) {
+    let role = String(msg.role || "user");
+    if (role === "developer") role = "system";
+    let content = "";
+    if (typeof msg.content === "string") {
+      content = msg.content;
+    } else if (Array.isArray(msg.content)) {
+      content = msg.content
+        .filter((c) => c.type === "text")
+        .map((c) => String(c.text || ""))
+        .join(" ");
+    }
+    if (!content.trim()) continue;
+    extracted.push({ role, text: content });
+  }
+
+  let lastUserIdx = -1;
+  for (let i = extracted.length - 1; i >= 0; i--) {
+    if (extracted[i].role === "user") {
+      lastUserIdx = i;
+      break;
+    }
+  }
+
+  const parts = [];
+  for (let i = 0; i < extracted.length; i++) {
+    const { role, text } = extracted[i];
+    parts.push(i === lastUserIdx ? text : `${role}: ${text}`);
+  }
+  return parts.join("\n\n");
+}
+
 
 export const BASE_URL = "https://chat.qwen.ai";
 const CHATS_NEW_URL = `${BASE_URL}/api/v2/chats/new`;
